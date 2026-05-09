@@ -265,18 +265,6 @@ def extract_w2_route():
             "error": str(e)
         }), 500
 
-
-# -----------------------------------
-# HEALTH CHECK
-# -----------------------------------
-@app.route("/")
-def home():
-    return jsonify({
-        "status": "running",
-        "service": "tax-extractor-api"
-    })
-
-
 # -----------------------------------
 # RUN
 # -----------------------------------
