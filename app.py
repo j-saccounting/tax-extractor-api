@@ -201,6 +201,7 @@ def extract_1099_int(tables):
         # MAP HEADERS
         # -----------------------------------
         for cell in table:
+            print(cell)
 
             text = cell["text"].lower()
 
