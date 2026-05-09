@@ -347,6 +347,8 @@ def extract_1099_div(textract_result):
 
         result["federal_withholding_box4"] = amounts[3]
 
+    return result
+
 # -----------------------------------
 # API ENDPOINT
 # -----------------------------------
