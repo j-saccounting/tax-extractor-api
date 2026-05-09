@@ -198,6 +198,50 @@ def analyze_document(file_bytes):
         },
         FeatureTypes=["TABLES"]
     )
+def detect_form(textract_result):
+
+    lines = []
+
+    for block in textract_result["Blocks"]:
+
+        if block["BlockType"] == "LINE":
+            text = block.get("Text", "").lower()
+            lines.append(text)
+
+    full_text = " ".join(lines)
+
+    # -----------------------------------
+    # W-2
+    # -----------------------------------
+    if "wage and tax statement" in full_text:
+        return "W2"
+
+    # -----------------------------------
+    # 1099-INT
+    # -----------------------------------
+    if "interest income" in full_text:
+        return "1099-INT"
+
+    # -----------------------------------
+    # 1099-DIV
+    # -----------------------------------
+    if "dividends and distributions" in full_text:
+        return "1099-DIV"
+
+    # -----------------------------------
+    # 1099-R
+    # -----------------------------------
+    if "distributions from pensions" in full_text:
+        return "1099-R"
+
+    # -----------------------------------
+    # 1098
+    # -----------------------------------
+    if "mortgage interest statement" in full_text:
+        return "1098"
+
+    return "UNKNOWN"
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -249,10 +293,21 @@ def extract_w2_route():
         # -----------------------------------
         tables = extract_tables(textract_result)
 
+        form_type = detect_form(textract_result)
+
         # -----------------------------------
-        # W2 PARSING
+        # ROUTE TO PARSER
         # -----------------------------------
-        result = extract_w2(tables)
+        if form_type == "W2":
+
+            result = extract_w2(tables)
+
+        else:
+
+            result = {
+                "detected_form": form_type,
+                "message": "Parser not implemented yet"
+            }
 
         return jsonify(result)
 
