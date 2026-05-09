@@ -209,6 +209,9 @@ def extract_w2_route():
             return jsonify({"error": "Missing file_base64"}), 400
 
         file_base64 = data["file_base64"]
+        # Remove data URI prefix if present
+        if "," in file_base64:
+            file_base64 = file_base64.split(",")[1]
         filename = data.get("filename", "").lower()
 
         # Fix missing base64 padding
