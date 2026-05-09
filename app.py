@@ -260,6 +260,84 @@ def extract_1099_int(tables):
 
     return result
 
+def extract_1099_div(tables):
+
+    result = {}
+
+    for table in tables:
+
+        headers = {}
+
+        # -----------------------------------
+        # MAP HEADERS
+        # -----------------------------------
+        for cell in table:
+
+            text = cell["text"].lower()
+
+            if "ordinary dividends" in text:
+                headers["ordinary"] = cell["col"]
+
+            if "qualified dividends" in text:
+                headers["qualified"] = cell["col"]
+
+            if "capital gain distributions" in text:
+                headers["capital_gain"] = cell["col"]
+
+            if "federal income tax withheld" in text:
+                headers["federal"] = cell["col"]
+
+        # -----------------------------------
+        # EXTRACT VALUES
+        # -----------------------------------
+        for cell in table:
+
+            row = cell["row"]
+            col = cell["col"]
+            text = cell["text"]
+
+            if row == 1:
+                continue
+
+            try:
+
+                value = float(
+                    text.replace("$", "").replace(",", "")
+                )
+
+            except:
+                continue
+
+            # -----------------------------------
+            # ORDINARY DIVIDENDS
+            # -----------------------------------
+            if col == headers.get("ordinary"):
+
+                result["ordinary_dividends_box1a"] = value
+
+            # -----------------------------------
+            # QUALIFIED DIVIDENDS
+            # -----------------------------------
+            if col == headers.get("qualified"):
+
+                result["qualified_dividends_box1b"] = value
+
+            # -----------------------------------
+            # CAPITAL GAIN DISTRIBUTIONS
+            # -----------------------------------
+            if col == headers.get("capital_gain"):
+
+                result["capital_gain_distributions_box2a"] = value
+
+            # -----------------------------------
+            # FEDERAL WITHHOLDING
+            # -----------------------------------
+            if col == headers.get("federal"):
+
+                result["federal_withholding_box4"] = value
+
+    return result
+
 # -----------------------------------
 # API ENDPOINT
 # -----------------------------------
@@ -378,6 +456,10 @@ def extract_w2_route():
         elif form_type == "1099-INT":
 
             result = extract_1099_int(tables)
+
+        elif form_type == "1099-DIV":
+
+            result = extract_1099_div(tables)
 
         else:
 
