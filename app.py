@@ -9,7 +9,7 @@ from pdf2image import convert_from_bytes
 app = Flask(__name__)
 app.json.sort_keys = False
 
-textract = boto3.client("textract", region_name="us-east-1")
+textract = boto3.client("textract", region_name="us-west-2")
 
 
 # -----------------------------------
@@ -190,6 +190,14 @@ def extract_w2(tables):
 # -----------------------------------
 # API ENDPOINT
 # -----------------------------------
+def analyze_document(file_bytes):
+
+    return client.analyze_document(
+        Document={
+            "Bytes": file_bytes
+        },
+        FeatureTypes=["TABLES"]
+    )
 @app.route("/extract-w2", methods=["POST"])
 def extract_w2_route():
 
