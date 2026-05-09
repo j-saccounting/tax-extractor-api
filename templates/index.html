@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>W-2 Extractor</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .upload-box {
+            border: 2px dashed #999;
+            padding: 40px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1>W-2 Extraction Portal</h1>
+
+<div class="upload-box">
+
+    <form id="uploadForm">
+
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" required>
+
+        <br><br>
+
+        <button type="submit">Extract W-2</button>
+
+    </form>
+
+</div>
+
+<pre id="result"></pre>
+
+<script>
+
+document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const file = document.getElementById("fileInput").files[0];
+
+    if (!file) {
+        alert("Please select a file.");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    document.getElementById("result").textContent = "Processing...";
+
+    try {
+
+        const response = await fetch("/extract-w2", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        document.getElementById("result").textContent =
+            JSON.stringify(data, null, 2);
+
+    } catch (err) {
+
+        document.getElementById("result").textContent =
+            "Error: " + err;
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
