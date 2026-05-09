@@ -187,6 +187,81 @@ def extract_w2(tables):
 
     return result
 
+def extract_1099_int(tables):
+
+    result = {}
+
+    for table in tables:
+
+        for cell in table:
+
+            text = cell["text"].lower()
+
+            # -----------------------------------
+            # BOX 1 — INTEREST INCOME
+            # -----------------------------------
+            if "1 interest income" in text:
+
+                row = cell["row"]
+
+                for c in table:
+
+                    if (
+                        c["row"] == row + 1
+                        and c["col"] == cell["col"]
+                    ):
+
+                        try:
+                            result["interest_income_box1"] = float(
+                                c["text"].replace(",", "")
+                            )
+                        except:
+                            pass
+
+            # -----------------------------------
+            # BOX 2 — EARLY WITHDRAWAL PENALTY
+            # -----------------------------------
+            if "2 early withdrawal penalty" in text:
+
+                row = cell["row"]
+
+                for c in table:
+
+                    if (
+                        c["row"] == row + 1
+                        and c["col"] == cell["col"]
+                    ):
+
+                        try:
+                            result["early_withdrawal_penalty_box2"] = float(
+                                c["text"].replace(",", "")
+                            )
+                        except:
+                            pass
+
+            # -----------------------------------
+            # BOX 4 — FEDERAL WITHHOLDING
+            # -----------------------------------
+            if "4 federal income tax withheld" in text:
+
+                row = cell["row"]
+
+                for c in table:
+
+                    if (
+                        c["row"] == row + 1
+                        and c["col"] == cell["col"]
+                    ):
+
+                        try:
+                            result["federal_withholding_box4"] = float(
+                                c["text"].replace(",", "")
+                            )
+                        except:
+                            pass
+
+    return result
+
 # -----------------------------------
 # API ENDPOINT
 # -----------------------------------
@@ -301,6 +376,10 @@ def extract_w2_route():
         if form_type == "W2":
 
             result = extract_w2(tables)
+
+        elif form_type == "1099-INT":
+
+            result = extract_1099_int(tables)
 
         else:
 
