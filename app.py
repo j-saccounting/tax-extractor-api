@@ -198,11 +198,11 @@ def analyze_document(file_bytes):
         },
         FeatureTypes=["TABLES"]
     )
-@app.route("/")
-def home():
-    return render_template("index.html")
-@app.route("/extract-w2", methods=["POST"])
-def extract_w2_route():
+        @app.route("/")
+        def home():
+            return render_template("index.html")
+        @app.route("/extract-w2", methods=["POST"])
+        def extract_w2_route():
 
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
