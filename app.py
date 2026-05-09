@@ -190,27 +190,64 @@ def extract_w2(tables):
 # API ENDPOINT
 # -----------------------------------
 @app.route("/extract-w2", methods=["POST"])
-def extract_w2_api():
+def extract_w2_route():
 
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
-    file = request.files["file"]
+    f = request.files["file"]
 
-    file_bytes = file.read()
+    if f.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
 
-    images = to_images(file_bytes, file.filename)
+    filename = f.filename.lower()
 
-    all_tables = []
+    file_bytes = f.read()
 
-    for img in images:
-        textract_result = call_textract(img)
+    try:
+
+        # -----------------------------------
+        # PDF HANDLING
+        # -----------------------------------
+        if filename.endswith(".pdf"):
+
+            images = convert_from_bytes(file_bytes)
+
+            if not images:
+                return jsonify({"error": "Could not read PDF"}), 400
+
+            img = images[0]
+
+            buffer = io.BytesIO()
+            img.save(buffer, format="JPEG")
+
+            textract_bytes = buffer.getvalue()
+
+        else:
+            textract_bytes = file_bytes
+
+        # -----------------------------------
+        # TEXTRACT
+        # -----------------------------------
+        textract_result = analyze_document(textract_bytes)
+
+        # -----------------------------------
+        # PARSE TABLES
+        # -----------------------------------
         tables = extract_tables(textract_result)
-        all_tables.extend(tables)
 
-    result = extract_w2(all_tables)
+        result = extract_w2(tables)
 
-    return jsonify(result)
+        return jsonify(result)
+
+    except Exception as e:
+
+        print("UPLOAD ERROR:")
+        print(str(e))
+
+        return jsonify({
+            "error": str(e)
+        }), 500
 
 
 # -----------------------------------
