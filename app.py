@@ -2,6 +2,7 @@ import boto3
 import io
 import csv
 import re
+import base64
 from flask import Flask, request, jsonify
 from pdf2image import convert_from_bytes
 
@@ -192,19 +193,17 @@ def extract_w2(tables):
 @app.route("/extract-w2", methods=["POST"])
 def extract_w2_route():
 
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
-
-    f = request.files["file"]
-
-    if f.filename == "":
-        return jsonify({"error": "Empty filename"}), 400
-
-    filename = f.filename.lower()
-
-    file_bytes = f.read()
-
     try:
+
+        data = request.get_json()
+
+        if not data or "file_base64" not in data:
+            return jsonify({"error": "Missing file_base64"}), 400
+
+        file_base64 = data["file_base64"]
+        filename = data.get("filename", "").lower()
+
+        file_bytes = base64.b64decode(file_base64)
 
         # -----------------------------------
         # PDF HANDLING
@@ -232,17 +231,20 @@ def extract_w2_route():
         textract_result = analyze_document(textract_bytes)
 
         # -----------------------------------
-        # PARSE TABLES
+        # TABLE EXTRACTION
         # -----------------------------------
         tables = extract_tables(textract_result)
 
+        # -----------------------------------
+        # W2 PARSING
+        # -----------------------------------
         result = extract_w2(tables)
 
         return jsonify(result)
 
     except Exception as e:
 
-        print("UPLOAD ERROR:")
+        print("ERROR:")
         print(str(e))
 
         return jsonify({
