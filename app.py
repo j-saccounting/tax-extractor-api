@@ -203,6 +203,12 @@ def extract_w2_route():
         file_base64 = data["file_base64"]
         filename = data.get("filename", "").lower()
 
+        # Fix missing base64 padding
+        missing_padding = len(file_base64) % 4
+
+        if missing_padding:
+            file_base64 += "=" * (4 - missing_padding)
+
         file_bytes = base64.b64decode(file_base64)
 
         # -----------------------------------
