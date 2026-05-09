@@ -279,67 +279,73 @@ def extract_1099_div(textract_result):
 
     full_text = " ".join(lines)
 
+        # -----------------------------------
+    # FIND ALL MONEY VALUES
+    # -----------------------------------
+    amounts = re.findall(
+        r"\$([\d,]+\.\d{2})",
+        full_text
+    )
+
+    amounts = [
+        float(a.replace(",", ""))
+        for a in amounts
+    ]
+
+    # DEBUG
+    print("DIV AMOUNTS:", amounts)
+
     # -----------------------------------
     # BOX 1A — ORDINARY DIVIDENDS
     # -----------------------------------
     ordinary_match = re.search(
-        r"1a total ordinary dividends\s*\$?([\d,]+\.\d{2})",
+        r"1a total ordinary dividends",
         full_text,
         re.IGNORECASE
     )
 
-    if ordinary_match:
+    if ordinary_match and len(amounts) >= 1:
 
-        result["ordinary_dividends_box1a"] = float(
-            ordinary_match.group(1).replace(",", "")
-        )
+        result["ordinary_dividends_box1a"] = amounts[0]
 
     # -----------------------------------
     # BOX 1B — QUALIFIED DIVIDENDS
     # -----------------------------------
     qualified_match = re.search(
-        r"1b qualified dividends\s*\$?([\d,]+\.\d{2})",
+        r"1b qualified dividends",
         full_text,
         re.IGNORECASE
     )
 
-    if qualified_match:
+    if qualified_match and len(amounts) >= 2:
 
-        result["qualified_dividends_box1b"] = float(
-            qualified_match.group(1).replace(",", "")
-        )
+        result["qualified_dividends_box1b"] = amounts[1]
 
     # -----------------------------------
     # BOX 2A — CAPITAL GAIN DISTRIBUTIONS
     # -----------------------------------
     capital_match = re.search(
-        r"2a total capital gain distr\.\s*\$?([\d,]+\.\d{2})",
+        r"2a total capital gain distr",
         full_text,
         re.IGNORECASE
     )
 
-    if capital_match:
+    if capital_match and len(amounts) >= 3:
 
-        result["capital_gain_distributions_box2a"] = float(
-            capital_match.group(1).replace(",", "")
-        )
+        result["capital_gain_distributions_box2a"] = amounts[2]
 
     # -----------------------------------
     # BOX 4 — FEDERAL WITHHOLDING
     # -----------------------------------
     federal_match = re.search(
-        r"4 federal income tax withheld\s*\$?([\d,]+\.\d{2})",
+        r"4 federal income tax withheld",
         full_text,
         re.IGNORECASE
     )
 
-    if federal_match:
+    if federal_match and len(amounts) >= 4:
 
-        result["federal_withholding_box4"] = float(
-            federal_match.group(1).replace(",", "")
-        )
-
-    return result
+        result["federal_withholding_box4"] = amounts[3]
 
 # -----------------------------------
 # API ENDPOINT
