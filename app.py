@@ -240,7 +240,7 @@ def extract_1099_int(tables):
             # -----------------------------------
             if col == headers.get("interest"):
 
-                total_interest += value
+                total_interest = value
 
             # -----------------------------------
             # FEDERAL WITHHOLDING
