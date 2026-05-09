@@ -377,7 +377,11 @@ def detect_form(textract_result):
     # -----------------------------------
     # 1099-DIV
     # -----------------------------------
-    if "dividends and distributions" in full_text:
+    if (
+        "form 1099-div" in full_text
+        or "qualified dividends" in full_text
+        or "total ordinary dividends" in full_text
+    ):
         return "1099-DIV"
 
     # -----------------------------------
