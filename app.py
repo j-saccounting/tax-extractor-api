@@ -191,75 +191,72 @@ def extract_1099_int(tables):
 
     result = {}
 
+    total_interest = 0.0
+
     for table in tables:
 
+        headers = {}
+
+        # -----------------------------------
+        # MAP HEADERS
+        # -----------------------------------
         for cell in table:
-            print(cell)
 
             text = cell["text"].lower()
 
-            # -----------------------------------
-            # BOX 1 — INTEREST INCOME
-            # -----------------------------------
-            if "1 interest income" in text:
+            if "interest income" in text:
+                headers["interest"] = cell["col"]
 
-                row = cell["row"]
+            if "early withdrawal penalty" in text:
+                headers["penalty"] = cell["col"]
 
-                for c in table:
+            if "fed income tax withheld" in text:
+                headers["federal"] = cell["col"]
 
-                    if (
-                        c["row"] == row + 1
-                        and c["col"] == cell["col"]
-                    ):
+        # -----------------------------------
+        # EXTRACT ROW VALUES
+        # -----------------------------------
+        for cell in table:
 
-                        try:
-                            result["interest_income_box1"] = float(
-                                c["text"].replace(",", "")
-                            )
-                        except:
-                            pass
+            row = cell["row"]
+            col = cell["col"]
+            text = cell["text"]
 
-            # -----------------------------------
-            # BOX 2 — EARLY WITHDRAWAL PENALTY
-            # -----------------------------------
-            if "2 early withdrawal penalty" in text:
+            # Skip header row
+            if row == 1:
+                continue
 
-                row = cell["row"]
+            try:
 
-                for c in table:
+                value = float(
+                    text.replace("$", "").replace(",", "")
+                )
 
-                    if (
-                        c["row"] == row + 1
-                        and c["col"] == cell["col"]
-                    ):
-
-                        try:
-                            result["early_withdrawal_penalty_box2"] = float(
-                                c["text"].replace(",", "")
-                            )
-                        except:
-                            pass
+            except:
+                continue
 
             # -----------------------------------
-            # BOX 4 — FEDERAL WITHHOLDING
+            # INTEREST INCOME
             # -----------------------------------
-            if "4 federal income tax withheld" in text:
+            if col == headers.get("interest"):
 
-                row = cell["row"]
+                total_interest += value
 
-                for c in table:
+            # -----------------------------------
+            # FEDERAL WITHHOLDING
+            # -----------------------------------
+            if col == headers.get("federal"):
 
-                    if (
-                        c["row"] == row + 1
-                        and c["col"] == cell["col"]
-                    ):
+                result["federal_withholding_box4"] = value
 
-                        try:
-                            result["federal_withholding_box4"] = float(
-                                c["text"].replace(",", "")
-                            )
-                        except:
-                            pass
+            # -----------------------------------
+            # EARLY WITHDRAWAL PENALTY
+            # -----------------------------------
+            if col == headers.get("penalty"):
+
+                result["early_withdrawal_penalty_box2"] = value
+
+    result["interest_income_box1"] = round(total_interest, 2)
 
     return result
 
