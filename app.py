@@ -194,6 +194,7 @@ def extract_1099_int(tables):
     for table in tables:
 
         for cell in table:
+            print(cell)
 
             text = cell["text"].lower()
 
