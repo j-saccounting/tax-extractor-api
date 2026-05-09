@@ -360,6 +360,7 @@ def detect_form(textract_result):
             lines.append(text)
 
     full_text = " ".join(lines)
+    print(full_text)
 
     # -----------------------------------
     # W-2
