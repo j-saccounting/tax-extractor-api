@@ -261,81 +261,83 @@ def extract_1099_int(tables):
 
     return result
 
-def extract_1099_div(tables):
+def extract_1099_div(textract_result):
+
+    import re
 
     result = {}
 
-    for table in tables:
+    lines = []
 
-        headers = {}
+    for block in textract_result["Blocks"]:
 
-        # -----------------------------------
-        # MAP HEADERS
-        # -----------------------------------
-        for cell in table:
+        if block["BlockType"] == "LINE":
 
-            text = cell["text"].lower()
+            text = block.get("Text", "")
 
-            if "ordinary dividends" in text:
-                headers["ordinary"] = cell["col"]
+            lines.append(text)
 
-            if "qualified dividends" in text:
-                headers["qualified"] = cell["col"]
+    full_text = " ".join(lines)
 
-            if "capital gain distributions" in text:
-                headers["capital_gain"] = cell["col"]
+    # -----------------------------------
+    # BOX 1A — ORDINARY DIVIDENDS
+    # -----------------------------------
+    ordinary_match = re.search(
+        r"1a total ordinary dividends\s*\$?([\d,]+\.\d{2})",
+        full_text,
+        re.IGNORECASE
+    )
 
-            if "federal income tax withheld" in text:
-                headers["federal"] = cell["col"]
+    if ordinary_match:
 
-        # -----------------------------------
-        # EXTRACT VALUES
-        # -----------------------------------
-        for cell in table:
+        result["ordinary_dividends_box1a"] = float(
+            ordinary_match.group(1).replace(",", "")
+        )
 
-            row = cell["row"]
-            col = cell["col"]
-            text = cell["text"]
+    # -----------------------------------
+    # BOX 1B — QUALIFIED DIVIDENDS
+    # -----------------------------------
+    qualified_match = re.search(
+        r"1b qualified dividends\s*\$?([\d,]+\.\d{2})",
+        full_text,
+        re.IGNORECASE
+    )
 
-            if row == 1:
-                continue
+    if qualified_match:
 
-            try:
+        result["qualified_dividends_box1b"] = float(
+            qualified_match.group(1).replace(",", "")
+        )
 
-                value = float(
-                    text.replace("$", "").replace(",", "")
-                )
+    # -----------------------------------
+    # BOX 2A — CAPITAL GAIN DISTRIBUTIONS
+    # -----------------------------------
+    capital_match = re.search(
+        r"2a total capital gain distr\.\s*\$?([\d,]+\.\d{2})",
+        full_text,
+        re.IGNORECASE
+    )
 
-            except:
-                continue
+    if capital_match:
 
-            # -----------------------------------
-            # ORDINARY DIVIDENDS
-            # -----------------------------------
-            if col == headers.get("ordinary"):
+        result["capital_gain_distributions_box2a"] = float(
+            capital_match.group(1).replace(",", "")
+        )
 
-                result["ordinary_dividends_box1a"] = value
+    # -----------------------------------
+    # BOX 4 — FEDERAL WITHHOLDING
+    # -----------------------------------
+    federal_match = re.search(
+        r"4 federal income tax withheld\s*\$?([\d,]+\.\d{2})",
+        full_text,
+        re.IGNORECASE
+    )
 
-            # -----------------------------------
-            # QUALIFIED DIVIDENDS
-            # -----------------------------------
-            if col == headers.get("qualified"):
+    if federal_match:
 
-                result["qualified_dividends_box1b"] = value
-
-            # -----------------------------------
-            # CAPITAL GAIN DISTRIBUTIONS
-            # -----------------------------------
-            if col == headers.get("capital_gain"):
-
-                result["capital_gain_distributions_box2a"] = value
-
-            # -----------------------------------
-            # FEDERAL WITHHOLDING
-            # -----------------------------------
-            if col == headers.get("federal"):
-
-                result["federal_withholding_box4"] = value
+        result["federal_withholding_box4"] = float(
+            federal_match.group(1).replace(",", "")
+        )
 
     return result
 
@@ -465,7 +467,7 @@ def extract_w2_route():
 
         elif form_type == "1099-DIV":
 
-            result = extract_1099_div(tables)
+            result = extract_1099_div(textract_result)
 
         else:
 
