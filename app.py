@@ -221,6 +221,10 @@ def extract_w2_route():
             file_base64 += "=" * (4 - missing_padding)
 
         file_bytes = base64.b64decode(file_base64)
+        print("FILENAME:", filename)
+        print("BYTE LENGTH:", len(file_bytes))
+        print("FIRST 20 BYTES:", file_bytes[:20])
+    
 
         # -----------------------------------
         # PDF HANDLING
