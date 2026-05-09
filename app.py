@@ -3,7 +3,7 @@ import io
 import csv
 import re
 import base64
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from pdf2image import convert_from_bytes
 
 app = Flask(__name__)
@@ -198,33 +198,25 @@ def analyze_document(file_bytes):
         },
         FeatureTypes=["TABLES"]
     )
+@app.route("/")
+def home():
+    return render_template("index.html")
 @app.route("/extract-w2", methods=["POST"])
 def extract_w2_route():
 
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    f = request.files["file"]
+
+    if f.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    filename = f.filename.lower()
+
+    file_bytes = f.read()
+
     try:
-
-        data = request.get_json()
-
-        if not data or "file_base64" not in data:
-            return jsonify({"error": "Missing file_base64"}), 400
-
-        file_base64 = data["file_base64"]
-        # Remove data URI prefix if present
-        if "," in file_base64:
-            file_base64 = file_base64.split(",")[1]
-        filename = data.get("filename", "").lower()
-
-        # Fix missing base64 padding
-        missing_padding = len(file_base64) % 4
-
-        if missing_padding:
-            file_base64 += "=" * (4 - missing_padding)
-
-        file_bytes = base64.b64decode(file_base64)
-        print("FILENAME:", filename)
-        print("BYTE LENGTH:", len(file_bytes))
-        print("FIRST 20 BYTES:", file_bytes[:20])
-    
 
         # -----------------------------------
         # PDF HANDLING
