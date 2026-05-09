@@ -192,7 +192,7 @@ def extract_w2(tables):
 # -----------------------------------
 def analyze_document(file_bytes):
 
-    return client.analyze_document(
+    return textract.analyze_document(
         Document={
             "Bytes": file_bytes
         },
